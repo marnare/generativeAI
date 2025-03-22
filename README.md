@@ -12,7 +12,7 @@ This repository contains the replication code.
  3. Run jupyter notebook `application_stars.ipynb`
 
 
-# Minimalistic Example 
+# Example 
 
 
 ```
