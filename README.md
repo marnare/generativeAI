@@ -8,8 +8,8 @@ This repository contains the replication code.
    - `git clone https://github.com/yourusername/generativeAI.git`
    - `cd generativeAI`
   
- 2. Install packages in the requirements.txt
- 3. Run jupyter notebook application_stars.ipynb
+ 2. Install packages in the `requirements.txt`
+ 3. Run jupyter notebook `application_stars.ipynb`
 
 
 # Minimalistic Example 
