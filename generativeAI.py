@@ -3,6 +3,8 @@ import torch.nn as nn
 import torch.optim as optim
 import numpy as np
 
+# Stefan-Boltzmann constant in W/m²K⁴
+STEFAN_BOLTZMANN_CONSTANT = 5.67e-8
 
 class TreatmentEffectNet(nn.Module):
     """
@@ -106,11 +108,25 @@ class TreatmentEffectNet(nn.Module):
         # Baseline
         mu = self.mu1(self.mu(torch.cat((x, pi), 1)))
         
+    
+        # Sample from normal distribution with mean = stefan_boltzmann_radiation
+        # and standard deviation = 0.1 * mean (10% variance)
+        # Calculate Stefan-Boltzmann radiation
+        # Assuming temperature is encoded in the first feature of x
+        temperature = x[:, 0]  # Extract temperature from first feature
+        stefan_boltzmann_radiation = STEFAN_BOLTZMANN_CONSTANT * torch.pow(temperature, 4)
+
         # Treatment effect
-        te = self.te1(tau * self.te(x)) # this is \beta_k(x, \theta)*cos(k, pi, q) for each k in [0, 32]. 
+        te = self.te1(tau * self.te(x))  # Your current treatment effect
+
+        noise = torch.normal(
+            mean=stefan_boltzmann_radiation.view(-1, 1),
+            std=0.1 * stefan_boltzmann_radiation.view(-1, 1)
+        )
+
         
         # Final output
-        y = mu + te * z.view(-1, 1) + np.random.normal(0, 1)
+        y = mu + te * z.view(-1, 1) + noise
         return y, pi1, te, mu
 
     def loss_fn(self, x, y, z, w):
