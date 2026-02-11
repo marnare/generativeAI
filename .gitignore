@@ -1,0 +1,126 @@
+# R package specific
+.Rhistory
+.RData
+.Ruserdata
+.Rproj.user/
+*.Rproj
+.Rapp.history
+
+# R CMD check output
+.Rcheck/
+*.Rcheck/
+
+# R package build artifacts
+*.tar.gz
+*.tgz
+*.zip
+
+# R package documentation
+man/*.Rd
+man/*.html
+docs/
+
+# R package vignettes
+vignettes/*.html
+vignettes/*.pdf
+vignettes/.Rhistory
+vignettes/*.R
+vignettes/*.rds
+
+# R package inst/doc
+inst/doc/*.html
+inst/doc/*.pdf
+inst/doc/*.R
+
+# R package tests
+tests/testthat/_snaps/
+tests/testthat/*.rds
+
+# R package namespace
+NAMESPACE
+
+# R package DESCRIPTION backup
+DESCRIPTION.bak
+
+# LaTeX auxiliary files (for vignettes and documentation)
+*.aux
+*.bbl
+*.blg
+*.fdb_latexmk
+*.fls
+*.log
+*.out
+*.synctex.gz
+*.toc
+*.lof
+*.lot
+*.nav
+*.snm
+*.vrb
+*.bcf
+*.run.xml
+*.auxlock
+
+# LaTeX output files
+*.pdf
+
+# Python (if you have Python code in your package)
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+*.egg-info/
+dist/
+build/
+*.egg
+
+# Virtual environments
+myenv/
+venv/
+env/
+ENV/
+
+# Jupyter Notebooks
+.ipynb_checkpoints/
+*.ipynb
+
+# Data files (uncomment if you have large data files)
+# data/*.rds
+# data/*.csv
+# data/*.xlsx
+
+# Results directory outputs
+results/*.pdf
+results/*.png
+results/*.jpg
+results/*.rds
+
+# OS-specific files
+.DS_Store
+.DS_Store?
+._*
+.Spotlight-V100
+.Trashes
+ehthumbs.db
+Thumbs.db
+desktop.ini
+
+# IDE-specific files
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+.project
+.classpath
+.settings/
+
+# Temporary files
+*.tmp
+*.temp
+*.bak
+*~
+
+# Log files
+*.log
