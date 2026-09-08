@@ -1,6 +1,6 @@
-# Generative AI for Validating Physics Laws
+# Generative Learner for Distributional Causal Effects
 
-This repository contains the replication code.
+This repository contains the replication code. The code is adapted from ```https://github.com/VadimSokolov/gbc/blob/main/gbc/causal.py```.
 
 ## Replication Steps
 
@@ -9,60 +9,70 @@ This repository contains the replication code.
    - `cd generativeAI`
   
  2. Install packages in the `requirements.txt`
- 3. Run jupyter notebook `application_stars.ipynb`
- 4. Run `MC_simulations.ipynb`
+ 3. Run jupyter notebook `application_stars_mean_target.ipynb`
+ 4. Run `MC_simulations_mean_target.ipynb`
 
 
 # Example 
 
 
 ```
-model = TreatmentEffectNet(x_dim=X_train.shape[1])
-optimizer = optim.Adam(model.parameters(), lr=0.001)
 
-# Training loop
-n_epochs = 100
-batch_size = 32
-n_samples = len(X_train)
+# GenTE parameters
+gente_kwargs = {
+    "model_cls": GBCcausal.CausalIQN,
+    "n_models": 3,
+    "device": "auto",
+    "target": "mean",
+    "hsz": 64,
+    "nh": 32,
+}
+
+gente_fit_kwargs = {
+    "epochs": 500,
+    "lr": 0.01,
+    "weight_decay": 1e-3,
+    "verbose": False,
+}
+
+# Build GenTE
+kw = dict(gente_kwargs)
+hsz, nh = kw.pop("hsz"), kw.pop("nh")
+
+ens = GBCcausal.GenTE(
+    model_kwargs={
+        "xdim": X_tr.shape[1],
+        "hsz": hsz,
+        "nh": nh,
+    },
+    **kw,
+)
+
+# Fit
+ens.fit(
+    X_tr,
+    Y_tr,
+    D_tr,
+    **gente_fit_kwargs,
+)
+
+# Estimate CATE on test data
+cate_out = ens.estimate_cate(X_te)
+
+tau_gen_test = cate_out["cate"]
+
+# ATE
+ate_gen = cate_out["ate"]
 
 
-for epoch in range(n_epochs):
-    # Convert to numpy arrays for shuffling
-    X_train_array = np.array(X_train)
-    D_train_array = np.array(D_train)
-    Y_train_array = np.array(Y_train)
-    
-    # Shuffle training data
-    idx = np.random.permutation(n_samples)
-    X_shuffle = X_train_array[idx]
-    D_shuffle = D_train_array[idx]
-    Y_shuffle = Y_train_array[idx]
-    
-    # Mini-batch training
-    for i in range(0, n_samples, batch_size):
-        batch_X = torch.FloatTensor(X_shuffle[i:i+batch_size])
-        batch_D = torch.FloatTensor(D_shuffle[i:i+batch_size])
-        batch_Y = torch.FloatTensor(Y_shuffle[i:i+batch_size])
-        
-        optimizer.zero_grad()
-        loss = model.loss_fn(batch_X, batch_Y, batch_D, [1.0, 0.1, 0.1])
-        loss.backward()
-        optimizer.step()
+# QTE
+q_grid = np.linspace(0.05, 0.95, 19)
 
-# Get GenerativeAI predictions on test set
-tau_gen_test = []
-for i in range(len(X_test)):
-    with torch.no_grad():
-        x = torch.FloatTensor(X_test[i:i+1])
-        z = torch.ones(1)
-        tau = 0.5
-        _, _, te, _ = model(x, z, tau)
-        tau_gen_test.append(te.numpy()[0, 1])
-tau_gen_test = np.array(tau_gen_test)
+qte_gen = ens.estimate_qte(
+    X_te,
+    quantiles=q_grid,
+)
 
-print("\nGenerativeAI  :")
-print(f"Average Treatment Effect: {np.mean(tau_gen_test):.2f}")
-print(f"Standard Deviation: {np.std(tau_gen_test):.2f}")
 ```
 
 
