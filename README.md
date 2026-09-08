@@ -10,6 +10,7 @@ This repository contains the replication code.
   
  2. Install packages in the `requirements.txt`
  3. Run jupyter notebook `application_stars.ipynb`
+ 4. Run `MC_simulations.ipynb`
 
 
 # Example 
