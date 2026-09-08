@@ -959,3 +959,196 @@ def sb_regression(L, R, T, name='fitted L', t_sun=T_SUN, alpha=0.05,
 
     return pd.DataFrame([row])
 
+
+
+def run_star_propensity_logit(
+    # ---- data: full covariate set ---------------------------------
+    X_train, D_train, X_test, D_test, cat_test, R_test, T_test,
+    # ---- data: radius-only covariate set --------------------------
+    X_train_ra, D_train_ra, X_test_ra, D_test_ra,
+    cat_test_ra, R_test_ra, T_test_ra,
+    # ---- output ---------------------------------------------------
+    labels=('full', 'radius'),
+    results_dir='plots',
+    table_name='df_table_propensity_logit',
+    scores_name='propensity_scores_logit',
+    plot_name='hist_propensity_logit',
+    save_table=True,
+    save_plots=True,
+    plot_show=True,
+    # ---- estimator -------------------------------------------------
+    tol=0.05,
+    C=1.0,
+    use_cv=False,
+    max_iter=5000,
+    seed=SEED,
+    # ---- cosmetics -------------------------------------------------
+    colour='#6E7F80',
+    figsize=(11, 4.2),
+    bins=25,
+    verbose=True,
+):
+    """Propensity scores from a logistic regression on the stars data.
+
+    Fits P(D = 1 | X) by penalised logistic regression on the training
+    half of each covariate set and predicts on the held-out half.  A
+    star is counted as lacking common support when the fitted score
+    lies below ``tol`` or above ``1 - tol``.
+
+    The covariates are already standardised by the loader, so the
+    penalty applies on a common scale.  With ``use_cv=True`` the
+    penalty strength is chosen by five-fold cross-validation instead of
+    being fixed at ``C``.
+
+    Returns
+    -------
+    dict with 'summary' (one row per covariate set and category),
+    'overall' (one row per covariate set), 'scores' (one row per
+    held-out star) and 'models' (the fitted classifiers).
+    """
+    from sklearn.linear_model import LogisticRegression, LogisticRegressionCV
+
+    os.makedirs(results_dir, exist_ok=True)
+
+    datasets = {
+        labels[0]: (X_train, D_train, X_test, D_test,
+                    cat_test, R_test, T_test),
+        labels[1]: (X_train_ra, D_train_ra, X_test_ra, D_test_ra,
+                    cat_test_ra, R_test_ra, T_test_ra),
+    }
+
+    rows, overall, scores, models = [], [], [], {}
+
+    for name, (Xtr, Dtr, Xte, Dte, cate, Rte, Tte) in datasets.items():
+        if verbose:
+            print(f"\n=== {name} "
+                  f"({Xtr.shape[1]} features) ===", flush=True)
+
+        if use_cv:
+            clf = LogisticRegressionCV(cv=5, max_iter=max_iter,
+                                       random_state=seed)
+        else:
+            clf = LogisticRegression(C=C, max_iter=max_iter,
+                                     random_state=seed)
+        clf.fit(Xtr, np.asarray(Dtr).ravel())
+        models[name] = clf
+
+        pi_hat = clf.predict_proba(Xte)[:, 1]
+        outside = (pi_hat < tol) | (pi_hat > 1 - tol)
+        acc_in = clf.score(Xtr, np.asarray(Dtr).ravel())
+        acc_out = clf.score(Xte, np.asarray(Dte).ravel())
+
+        for s in range(len(pi_hat)):
+            scores.append({'covariates': name,
+                           'category': cate[s],
+                           'D': float(Dte[s]),
+                           'radius': float(Rte[s]),
+                           'temperature': float(Tte[s]),
+                           'pi_hat': float(pi_hat[s]),
+                           'no_support': bool(outside[s])})
+
+        df_s = pd.DataFrame({'cat': cate, 'D': Dte,
+                             'pi': pi_hat, 'out': outside})
+        for cat, sub in df_s.groupby('cat'):
+            rows.append({
+                'covariates': name,
+                'category': cat,
+                'n': len(sub),
+                'share treated': sub['D'].mean(),
+                'pi min': sub['pi'].min(),
+                'pi median': sub['pi'].median(),
+                'pi max': sub['pi'].max(),
+                f'share outside [{tol:g}, {1 - tol:g}]': sub['out'].mean(),
+            })
+
+        overall.append({
+            'covariates': name,
+            'n': len(pi_hat),
+            'share treated': float(np.mean(Dte)),
+            'accuracy train': acc_in,
+            'accuracy test': acc_out,
+            'pi min': float(pi_hat.min()),
+            'pi median': float(np.median(pi_hat)),
+            'pi max': float(pi_hat.max()),
+            'n outside': int(outside.sum()),
+            'share outside': float(outside.mean()),
+        })
+
+        if verbose:
+            print(f"  accuracy {acc_in:.3f} train, {acc_out:.3f} test")
+            print(f"  pi in [{pi_hat.min():.3f}, {pi_hat.max():.3f}], "
+                  f"{outside.sum()} of {len(pi_hat)} stars "
+                  f"({outside.mean():.1%}) outside "
+                  f"[{tol:g}, {1 - tol:g}]")
+
+    df_summary = pd.DataFrame(rows)
+    df_overall = pd.DataFrame(overall)
+    df_scores = pd.DataFrame(scores)
+
+    if save_table:
+        p1 = os.path.join(results_dir, f'{table_name}.csv')
+        p2 = os.path.join(results_dir, f'{table_name}_overall.csv')
+        p3 = os.path.join(results_dir, f'{scores_name}.csv')
+        df_summary.to_csv(p1, index=False)
+        df_overall.to_csv(p2, index=False)
+        df_scores.to_csv(p3, index=False)
+        if verbose:
+            print(f"\nsaved {p1}\nsaved {p2}\nsaved {p3}")
+
+    # ------------------------------------------------------------------
+    # one figure per covariate set, on a common vertical scale
+    # ------------------------------------------------------------------
+    counts_max = 0
+    for name in datasets:
+        pi_hat = df_scores.loc[df_scores['covariates'] == name,
+                               'pi_hat'].to_numpy()
+        counts, _ = np.histogram(pi_hat, bins=bins, range=(0, 1))
+        counts_max = max(counts_max, counts.max())
+
+    for name in datasets:
+        pi_hat = df_scores.loc[df_scores['covariates'] == name,
+                               'pi_hat'].to_numpy()
+
+        fig, ax = plt.subplots(figsize=figsize)
+        ax.axvspan(0, tol, color='0.88', zorder=0)
+        ax.axvspan(1 - tol, 1, color='0.88', zorder=0)
+        ax.hist(pi_hat, bins=bins, range=(0, 1), color=colour,
+                alpha=0.85, edgecolor='white', linewidth=0.5, zorder=2)
+        ax.set_xlim(0, 1)
+        ax.set_ylim(0, counts_max * 1.08)
+        ax.set_xlabel(r'$\hat{\pi}(x)$')
+        ax.set_ylabel('Held-out stars')
+        fig.tight_layout()
+
+        if save_plots:
+            for ext in ('pdf', 'png'):
+                path = os.path.join(results_dir,
+                                    f'{plot_name}_{name}.{ext}')
+                fig.savefig(path, dpi=300, bbox_inches='tight')
+                if verbose:
+                    print(f"saved {path}")
+        if plot_show:
+            display(fig)
+        plt.close(fig)
+
+    if save_plots:
+        for ext in ('pdf', 'png'):
+            path = os.path.join(results_dir, f'{plot_name}.{ext}')
+            fig.savefig(path, dpi=300, bbox_inches='tight')
+            if verbose:
+                print(f"saved {path}")
+    if plot_show:
+        display(fig)
+    plt.close(fig)
+
+    if verbose:
+        print()
+        print(df_overall.to_string(index=False))
+        print()
+        print(df_summary.to_string(index=False))
+
+    return {'summary': df_summary, 'overall': df_overall,
+            'scores': df_scores, 'models': models}
+
+
+        
