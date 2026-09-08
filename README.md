@@ -1,6 +1,6 @@
-# Generative AI for Validating Physics Laws
+# Generative Learner for Distributional Causal Effects
 
-This repository contains the replication code.
+This repository contains the replication code. The code is adapted from ```https://github.com/VadimSokolov/gbc/blob/main/gbc/causal.py```.
 
 ## Replication Steps
 
