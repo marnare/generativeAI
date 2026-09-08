@@ -1,0 +1,401 @@
+assignment,label,rep,MSE
+rct,RCT,0,6.274364273919992
+rct,RCT,1,2.2440312816661567
+rct,RCT,2,4.337712082221992
+rct,RCT,3,3.059303983711495
+rct,RCT,4,5.9822839794395835
+rct,RCT,5,3.4125070183084842
+rct,RCT,6,7.757902518514287
+rct,RCT,7,9.479440865671043
+rct,RCT,8,6.7684437629543135
+rct,RCT,9,3.7968661490373496
+rct,RCT,10,6.2771284681671675
+rct,RCT,11,5.6344407371176635
+rct,RCT,12,5.940968057721764
+rct,RCT,13,3.3021690508835
+rct,RCT,14,3.659884310934038
+rct,RCT,15,4.28744693619731
+rct,RCT,16,3.724548155606879
+rct,RCT,17,2.5675143595004797
+rct,RCT,18,5.699802115951174
+rct,RCT,19,3.8950887836812846
+rct,RCT,20,3.808316200311257
+rct,RCT,21,6.654995420696687
+rct,RCT,22,5.181441790323064
+rct,RCT,23,4.868815873418709
+rct,RCT,24,4.997237055909876
+rct,RCT,25,5.892201487867791
+rct,RCT,26,4.295749113663313
+rct,RCT,27,4.460191252865973
+rct,RCT,28,3.629960944329377
+rct,RCT,29,3.5256184664601653
+rct,RCT,30,4.1019234453738616
+rct,RCT,31,4.940330578664078
+rct,RCT,32,3.665377226692457
+rct,RCT,33,6.820292074420849
+rct,RCT,34,4.054906320819261
+rct,RCT,35,5.107979901861049
+rct,RCT,36,3.852898217926837
+rct,RCT,37,3.7097739429219545
+rct,RCT,38,5.200469509265918
+rct,RCT,39,4.178134023234203
+rct,RCT,40,5.301972248359449
+rct,RCT,41,9.045246712009542
+rct,RCT,42,3.518242948512174
+rct,RCT,43,3.707543277688485
+rct,RCT,44,3.0135740806275666
+rct,RCT,45,7.330760477320028
+rct,RCT,46,5.838838770465436
+rct,RCT,47,6.967844326269609
+rct,RCT,48,5.3831681612805005
+rct,RCT,49,4.315269062680853
+rct,RCT,50,4.706614752467589
+rct,RCT,51,6.3005473457921815
+rct,RCT,52,2.910662742882933
+rct,RCT,53,4.222514537581557
+rct,RCT,54,5.95095900022961
+rct,RCT,55,3.884663868111368
+rct,RCT,56,9.33098617511116
+rct,RCT,57,6.774640657971253
+rct,RCT,58,6.75164602717037
+rct,RCT,59,4.656546233580395
+rct,RCT,60,5.032050713224716
+rct,RCT,61,6.597367056422651
+rct,RCT,62,3.873804136329008
+rct,RCT,63,4.121726025506857
+rct,RCT,64,4.437568046427378
+rct,RCT,65,5.885595748478319
+rct,RCT,66,3.8496083751110906
+rct,RCT,67,4.5302063269373525
+rct,RCT,68,5.455039191876543
+rct,RCT,69,6.381882431653231
+rct,RCT,70,7.005272722999087
+rct,RCT,71,5.040378158673014
+rct,RCT,72,7.04072369156076
+rct,RCT,73,6.701214852816455
+rct,RCT,74,7.449902302366379
+rct,RCT,75,5.750992682566964
+rct,RCT,76,6.368613706393611
+rct,RCT,77,2.435806175899557
+rct,RCT,78,4.675069733387081
+rct,RCT,79,4.883294491505079
+rct,RCT,80,6.628149380769539
+rct,RCT,81,6.897195663578141
+rct,RCT,82,9.732381990224601
+rct,RCT,83,5.816308598234496
+rct,RCT,84,4.121565435130682
+rct,RCT,85,6.645425504541899
+rct,RCT,86,5.630346600263423
+rct,RCT,87,3.8412164484781135
+rct,RCT,88,5.090963320052172
+rct,RCT,89,5.598972507094292
+rct,RCT,90,3.49611812220437
+rct,RCT,91,4.7481705430185865
+rct,RCT,92,7.026105105508185
+rct,RCT,93,7.179391364855858
+rct,RCT,94,5.4710534062165666
+rct,RCT,95,4.969277349108056
+rct,RCT,96,6.235591897892524
+rct,RCT,97,4.685006957496375
+rct,RCT,98,3.028294916087491
+rct,RCT,99,9.242408599658031
+logit,Linear logit,0,6.066132622258341
+logit,Linear logit,1,4.57134172395909
+logit,Linear logit,2,4.848547874300337
+logit,Linear logit,3,2.7294301957987575
+logit,Linear logit,4,5.279881416762916
+logit,Linear logit,5,3.4133938870766083
+logit,Linear logit,6,8.494528524210944
+logit,Linear logit,7,7.175709306339074
+logit,Linear logit,8,6.071546928547744
+logit,Linear logit,9,2.9137051997893915
+logit,Linear logit,10,6.750361128257816
+logit,Linear logit,11,5.460839734700311
+logit,Linear logit,12,4.027748915398087
+logit,Linear logit,13,4.738185623444475
+logit,Linear logit,14,2.8129373724988573
+logit,Linear logit,15,4.92351129288031
+logit,Linear logit,16,3.8983127402531665
+logit,Linear logit,17,5.105524519060278
+logit,Linear logit,18,5.691976888901694
+logit,Linear logit,19,4.581290464137538
+logit,Linear logit,20,5.05550261117569
+logit,Linear logit,21,6.112580318699465
+logit,Linear logit,22,5.18464172027639
+logit,Linear logit,23,4.782970210395295
+logit,Linear logit,24,5.035168498726407
+logit,Linear logit,25,4.5044056523302825
+logit,Linear logit,26,6.116632982953699
+logit,Linear logit,27,5.858475933853648
+logit,Linear logit,28,3.0566769217636485
+logit,Linear logit,29,5.178014320481258
+logit,Linear logit,30,3.902360163336031
+logit,Linear logit,31,3.920554564615816
+logit,Linear logit,32,4.299574023350061
+logit,Linear logit,33,4.2035478599915095
+logit,Linear logit,34,4.788861820818233
+logit,Linear logit,35,8.164739079508848
+logit,Linear logit,36,4.776660859037966
+logit,Linear logit,37,2.683791738859896
+logit,Linear logit,38,5.3773940382916425
+logit,Linear logit,39,4.930709895468714
+logit,Linear logit,40,4.56477557305057
+logit,Linear logit,41,6.770290342027965
+logit,Linear logit,42,5.393680689089154
+logit,Linear logit,43,3.9461616155395496
+logit,Linear logit,44,3.106206947278262
+logit,Linear logit,45,5.066596309988776
+logit,Linear logit,46,6.10008276045862
+logit,Linear logit,47,4.143006543253941
+logit,Linear logit,48,4.234516537145061
+logit,Linear logit,49,4.75187081831992
+logit,Linear logit,50,5.362717148393739
+logit,Linear logit,51,7.444735465890819
+logit,Linear logit,52,3.1844923872580417
+logit,Linear logit,53,3.5299688394360356
+logit,Linear logit,54,4.078814352228882
+logit,Linear logit,55,4.705434745003018
+logit,Linear logit,56,8.247904161451238
+logit,Linear logit,57,4.147069021122939
+logit,Linear logit,58,4.662357472942664
+logit,Linear logit,59,3.5653005422132305
+logit,Linear logit,60,8.310471642530507
+logit,Linear logit,61,6.465075447151595
+logit,Linear logit,62,5.22397119825592
+logit,Linear logit,63,4.811454790836631
+logit,Linear logit,64,2.9047429398813085
+logit,Linear logit,65,4.535524381811218
+logit,Linear logit,66,1.9009715660449895
+logit,Linear logit,67,4.485559855951203
+logit,Linear logit,68,4.248370815626759
+logit,Linear logit,69,3.788879807424304
+logit,Linear logit,70,4.951028562113074
+logit,Linear logit,71,5.0114593540530326
+logit,Linear logit,72,7.441925836830172
+logit,Linear logit,73,4.173148294849627
+logit,Linear logit,74,9.361407130633935
+logit,Linear logit,75,8.477475314085535
+logit,Linear logit,76,4.639739032321557
+logit,Linear logit,77,3.5866176266194505
+logit,Linear logit,78,4.727942957661828
+logit,Linear logit,79,4.120061595621726
+logit,Linear logit,80,3.6460889183397382
+logit,Linear logit,81,5.978580032703125
+logit,Linear logit,82,6.610708913061265
+logit,Linear logit,83,4.094315949618421
+logit,Linear logit,84,4.380606424308698
+logit,Linear logit,85,3.985687333973103
+logit,Linear logit,86,8.312008308315656
+logit,Linear logit,87,4.146647378087296
+logit,Linear logit,88,6.796311310334937
+logit,Linear logit,89,4.44709607713426
+logit,Linear logit,90,4.594079001177093
+logit,Linear logit,91,6.6459065195799285
+logit,Linear logit,92,7.733248552035215
+logit,Linear logit,93,5.9662368446695035
+logit,Linear logit,94,5.49218477658714
+logit,Linear logit,95,4.004081020180883
+logit,Linear logit,96,6.003402638242882
+logit,Linear logit,97,5.738059320071649
+logit,Linear logit,98,3.6566991796906496
+logit,Linear logit,99,9.858351731390245
+nonlinear,Nonlinear logit,0,4.573520254311559
+nonlinear,Nonlinear logit,1,5.932538797106185
+nonlinear,Nonlinear logit,2,4.9676922846853895
+nonlinear,Nonlinear logit,3,3.4828728152232022
+nonlinear,Nonlinear logit,4,6.78680159415138
+nonlinear,Nonlinear logit,5,2.6036882463446247
+nonlinear,Nonlinear logit,6,6.868489909360644
+nonlinear,Nonlinear logit,7,6.429228007179603
+nonlinear,Nonlinear logit,8,5.283703597313043
+nonlinear,Nonlinear logit,9,4.379565308625825
+nonlinear,Nonlinear logit,10,3.2312127797125885
+nonlinear,Nonlinear logit,11,3.983577901852741
+nonlinear,Nonlinear logit,12,5.771899686911688
+nonlinear,Nonlinear logit,13,4.377598179155553
+nonlinear,Nonlinear logit,14,4.134901321434254
+nonlinear,Nonlinear logit,15,3.826067763634115
+nonlinear,Nonlinear logit,16,4.041658218127416
+nonlinear,Nonlinear logit,17,3.753508805809471
+nonlinear,Nonlinear logit,18,5.307883169073671
+nonlinear,Nonlinear logit,19,3.9349441747335425
+nonlinear,Nonlinear logit,20,6.231870055304098
+nonlinear,Nonlinear logit,21,6.395781529263064
+nonlinear,Nonlinear logit,22,3.781433924357118
+nonlinear,Nonlinear logit,23,4.9019286017546495
+nonlinear,Nonlinear logit,24,5.279923224216833
+nonlinear,Nonlinear logit,25,2.9658403462105944
+nonlinear,Nonlinear logit,26,4.978725753612843
+nonlinear,Nonlinear logit,27,5.654399141440694
+nonlinear,Nonlinear logit,28,4.266041140585351
+nonlinear,Nonlinear logit,29,4.865442067750196
+nonlinear,Nonlinear logit,30,4.1165974327918375
+nonlinear,Nonlinear logit,31,4.586469373793298
+nonlinear,Nonlinear logit,32,4.6083880378612845
+nonlinear,Nonlinear logit,33,6.764440774372593
+nonlinear,Nonlinear logit,34,6.577617034440917
+nonlinear,Nonlinear logit,35,3.6412039309177233
+nonlinear,Nonlinear logit,36,7.035717190897607
+nonlinear,Nonlinear logit,37,2.7424307647412025
+nonlinear,Nonlinear logit,38,5.033011112182167
+nonlinear,Nonlinear logit,39,3.3441953345892608
+nonlinear,Nonlinear logit,40,4.760034268259122
+nonlinear,Nonlinear logit,41,5.521755690321897
+nonlinear,Nonlinear logit,42,5.088834471202933
+nonlinear,Nonlinear logit,43,2.7842502507683866
+nonlinear,Nonlinear logit,44,3.0123735043312503
+nonlinear,Nonlinear logit,45,5.490839773056485
+nonlinear,Nonlinear logit,46,6.549363857406096
+nonlinear,Nonlinear logit,47,3.3184077979730726
+nonlinear,Nonlinear logit,48,4.743259368539863
+nonlinear,Nonlinear logit,49,4.905189431115821
+nonlinear,Nonlinear logit,50,3.0646357080999813
+nonlinear,Nonlinear logit,51,3.748223281904675
+nonlinear,Nonlinear logit,52,4.121249644447899
+nonlinear,Nonlinear logit,53,5.344310299487035
+nonlinear,Nonlinear logit,54,7.213114761650842
+nonlinear,Nonlinear logit,55,4.679136044260044
+nonlinear,Nonlinear logit,56,7.994215497875639
+nonlinear,Nonlinear logit,57,7.3812686680767134
+nonlinear,Nonlinear logit,58,7.451150749576427
+nonlinear,Nonlinear logit,59,5.212766469060495
+nonlinear,Nonlinear logit,60,7.081729768740383
+nonlinear,Nonlinear logit,61,6.388421261893304
+nonlinear,Nonlinear logit,62,3.0694731642363893
+nonlinear,Nonlinear logit,63,4.07963268354848
+nonlinear,Nonlinear logit,64,4.414554829783781
+nonlinear,Nonlinear logit,65,3.88591705090344
+nonlinear,Nonlinear logit,66,4.831864328450913
+nonlinear,Nonlinear logit,67,5.558038418629752
+nonlinear,Nonlinear logit,68,4.861615715557064
+nonlinear,Nonlinear logit,69,4.666962566589678
+nonlinear,Nonlinear logit,70,4.6787892188318265
+nonlinear,Nonlinear logit,71,5.514138701747147
+nonlinear,Nonlinear logit,72,5.691675733897462
+nonlinear,Nonlinear logit,73,6.435160058031811
+nonlinear,Nonlinear logit,74,6.705088241546033
+nonlinear,Nonlinear logit,75,4.499321899351474
+nonlinear,Nonlinear logit,76,6.663606749029504
+nonlinear,Nonlinear logit,77,2.855501601543894
+nonlinear,Nonlinear logit,78,4.895720758498962
+nonlinear,Nonlinear logit,79,6.205996648036702
+nonlinear,Nonlinear logit,80,3.345406784843701
+nonlinear,Nonlinear logit,81,4.458022310959599
+nonlinear,Nonlinear logit,82,7.413822011306278
+nonlinear,Nonlinear logit,83,6.740602738367416
+nonlinear,Nonlinear logit,84,5.737257178644478
+nonlinear,Nonlinear logit,85,7.294986508283462
+nonlinear,Nonlinear logit,86,5.368349582369345
+nonlinear,Nonlinear logit,87,3.4052448274598976
+nonlinear,Nonlinear logit,88,5.314164786825779
+nonlinear,Nonlinear logit,89,2.7110359568555484
+nonlinear,Nonlinear logit,90,4.67619036456732
+nonlinear,Nonlinear logit,91,7.1302198793261615
+nonlinear,Nonlinear logit,92,5.958401288252696
+nonlinear,Nonlinear logit,93,5.442062009362349
+nonlinear,Nonlinear logit,94,3.321541045254124
+nonlinear,Nonlinear logit,95,4.642530702555218
+nonlinear,Nonlinear logit,96,5.784646962252687
+nonlinear,Nonlinear logit,97,3.927126710397294
+nonlinear,Nonlinear logit,98,2.99852896572786
+nonlinear,Nonlinear logit,99,6.795737424913173
+trig,Trigonometric,0,6.873166211638392
+trig,Trigonometric,1,3.12450499938592
+trig,Trigonometric,2,5.104341846145085
+trig,Trigonometric,3,5.1585951566712716
+trig,Trigonometric,4,4.161517745955465
+trig,Trigonometric,5,2.1412362505045777
+trig,Trigonometric,6,6.6910396578591955
+trig,Trigonometric,7,12.128571925677017
+trig,Trigonometric,8,3.973831115288149
+trig,Trigonometric,9,3.3545948055100956
+trig,Trigonometric,10,6.113763212323626
+trig,Trigonometric,11,7.961008836153677
+trig,Trigonometric,12,4.03330458653501
+trig,Trigonometric,13,4.470512637382499
+trig,Trigonometric,14,2.8093176502485666
+trig,Trigonometric,15,6.84195114127777
+trig,Trigonometric,16,2.68058884773505
+trig,Trigonometric,17,2.8360618730627176
+trig,Trigonometric,18,4.6553949954646265
+trig,Trigonometric,19,5.301548561323349
+trig,Trigonometric,20,2.699719794245024
+trig,Trigonometric,21,5.1159657204431
+trig,Trigonometric,22,4.364507298722619
+trig,Trigonometric,23,5.471462271847837
+trig,Trigonometric,24,7.011998999573272
+trig,Trigonometric,25,4.126605194500876
+trig,Trigonometric,26,4.232035164970487
+trig,Trigonometric,27,4.810665854398125
+trig,Trigonometric,28,4.06181993084915
+trig,Trigonometric,29,6.312903408454674
+trig,Trigonometric,30,3.5519743793760554
+trig,Trigonometric,31,4.284857705558756
+trig,Trigonometric,32,3.879048004314107
+trig,Trigonometric,33,5.812691456269933
+trig,Trigonometric,34,3.8800840582018457
+trig,Trigonometric,35,5.314602531860315
+trig,Trigonometric,36,3.4430599203198837
+trig,Trigonometric,37,2.5705262277277146
+trig,Trigonometric,38,5.647375063286339
+trig,Trigonometric,39,3.621216715048591
+trig,Trigonometric,40,3.369152277076924
+trig,Trigonometric,41,8.731725532468491
+trig,Trigonometric,42,4.177979036737561
+trig,Trigonometric,43,3.2746336537455827
+trig,Trigonometric,44,5.5872505719361305
+trig,Trigonometric,45,7.373508984986047
+trig,Trigonometric,46,5.898927645379165
+trig,Trigonometric,47,2.9851916611257105
+trig,Trigonometric,48,4.648150474881404
+trig,Trigonometric,49,8.031671044759973
+trig,Trigonometric,50,3.999721995516249
+trig,Trigonometric,51,5.173403787524388
+trig,Trigonometric,52,2.97110029070297
+trig,Trigonometric,53,4.331388978322913
+trig,Trigonometric,54,7.0578415923828395
+trig,Trigonometric,55,6.535912924672574
+trig,Trigonometric,56,10.093563316475077
+trig,Trigonometric,57,5.705163655310361
+trig,Trigonometric,58,8.930185639626654
+trig,Trigonometric,59,5.752849299162926
+trig,Trigonometric,60,4.887709561617831
+trig,Trigonometric,61,5.553477117856391
+trig,Trigonometric,62,7.133887508515168
+trig,Trigonometric,63,5.478747464187636
+trig,Trigonometric,64,5.326031739588506
+trig,Trigonometric,65,8.11972999895242
+trig,Trigonometric,66,3.6647321366847003
+trig,Trigonometric,67,5.520275940398549
+trig,Trigonometric,68,6.574681075655561
+trig,Trigonometric,69,3.5899390869218464
+trig,Trigonometric,70,4.2750745807549
+trig,Trigonometric,71,6.957822065273093
+trig,Trigonometric,72,5.546277672956914
+trig,Trigonometric,73,8.122904206982515
+trig,Trigonometric,74,4.692327660350122
+trig,Trigonometric,75,3.039925638766446
+trig,Trigonometric,76,7.634532440210793
+trig,Trigonometric,77,2.810505232025003
+trig,Trigonometric,78,3.532358210843479
+trig,Trigonometric,79,4.872443215158988
+trig,Trigonometric,80,6.594229598437699
+trig,Trigonometric,81,4.035166402308476
+trig,Trigonometric,82,6.053554012270731
+trig,Trigonometric,83,4.490865083331717
+trig,Trigonometric,84,5.827309159881063
+trig,Trigonometric,85,6.822025159459491
+trig,Trigonometric,86,4.668782674195454
+trig,Trigonometric,87,4.296243461303346
+trig,Trigonometric,88,6.011087688367803
+trig,Trigonometric,89,7.777917121263314
+trig,Trigonometric,90,5.67930401625441
+trig,Trigonometric,91,5.105309488682786
+trig,Trigonometric,92,5.54805900493296
+trig,Trigonometric,93,4.331663578112951
+trig,Trigonometric,94,5.066883686153187
+trig,Trigonometric,95,4.734928797457266
+trig,Trigonometric,96,5.879561009695106
+trig,Trigonometric,97,6.265330617045569
+trig,Trigonometric,98,2.7434341687380686
+trig,Trigonometric,99,6.100751665102187

@@ -1,0 +1,53 @@
+\begin{table}[H]
+\centering
+\caption{Mean squared error of GenTE with separate treated/control quantile functions versus joint estimation, by effect type, sample size $n$, and covariate dimension $p$. Each cell is the mean MSE (standard deviation in parentheses) over 100 Monte Carlo replications.}
+\label{tab:gente_sep_joint}
+\resizebox{\textwidth}{!}{%
+\begin{tabular}{lrrrrrr}
+\toprule
+& \multicolumn{3}{c}{GenTE (separate)} & \multicolumn{3}{c}{GenTE (joint)} \\
+\cmidrule(lr){2-4}\cmidrule(lr){5-7}
+Sample size & $p{=}2$ & $p{=}4$ & $p{=}8$ & $p{=}2$ & $p{=}4$ & $p{=}8$ \\
+\midrule
+\multicolumn{7}{l}{Linear} \\
+\midrule
+200 & 0.722 & 1.124 & 1.151 & 0.107 & 0.345 & 0.712 \\
+  & (0.163) & (0.335) & (0.330) & (0.067) & (0.165) & (0.380) \\
+500 & 0.676 & 1.068 & 1.124 & 0.064 & 0.222 & 0.409 \\
+  & (0.122) & (0.200) & (0.145) & (0.046) & (0.138) & (0.232) \\
+1000 & 0.680 & 1.054 & 1.115 & 0.053 & 0.170 & 0.302 \\
+  & (0.111) & (0.185) & (0.142) & (0.046) & (0.101) & (0.147) \\
+\addlinespace
+\midrule
+\multicolumn{7}{l}{Non-linear} \\
+\midrule
+200 & 2.435 & 2.494 & 2.647 & 0.346 & 0.660 & 1.457 \\
+  & (0.923) & (0.731) & (0.923) & (0.297) & (0.393) & (0.633) \\
+500 & 2.321 & 2.376 & 2.639 & 0.174 & 0.348 & 0.688 \\
+  & (0.504) & (0.543) & (0.562) & (0.100) & (0.231) & (0.305) \\
+1000 & 2.304 & 2.418 & 2.629 & 0.137 & 0.275 & 0.565 \\
+  & (0.375) & (0.373) & (0.370) & (0.063) & (0.119) & (0.259) \\
+\addlinespace
+\midrule
+\multicolumn{7}{l}{Interaction} \\
+\midrule
+200 & 0.991 & 1.074 & 1.069 & 0.358 & 0.578 & 1.169 \\
+  & (0.302) & (0.334) & (0.373) & (0.206) & (0.258) & (0.453) \\
+500 & 0.949 & 1.033 & 1.032 & 0.227 & 0.377 & 0.666 \\
+  & (0.175) & (0.206) & (0.174) & (0.108) & (0.142) & (0.276) \\
+1000 & 0.962 & 1.025 & 1.046 & 0.203 & 0.308 & 0.521 \\
+  & (0.146) & (0.144) & (0.145) & (0.094) & (0.115) & (0.191) \\
+\addlinespace
+\midrule
+\multicolumn{7}{l}{Non-linear interaction} \\
+\midrule
+200 & 2.893 & 2.645 & 2.792 & 1.954 & 2.155 & 3.197 \\
+  & (1.906) & (1.402) & (1.468) & (1.640) & (1.139) & (1.550) \\
+500 & 2.647 & 2.559 & 2.906 & 1.403 & 1.632 & 2.519 \\
+  & (1.015) & (0.865) & (0.922) & (0.930) & (0.787) & (1.019) \\
+1000 & 2.647 & 2.629 & 2.940 & 1.364 & 1.525 & 2.231 \\
+  & (0.736) & (0.673) & (0.607) & (0.641) & (0.641) & (0.602) \\
+\bottomrule
+\end{tabular}%
+}
+\end{table}
