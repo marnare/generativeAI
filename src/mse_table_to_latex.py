@@ -240,6 +240,13 @@ SEP_JOINT_CAPTION = (
 )
 
 
+SEP_JOINT_METHODS = (
+    ("GenTE Separate",         "GenTE (separate)"),
+    ("GenTE Joint Estimation", "GenTE (joint, grid)"),
+    ("GenTE Joint MC",         "GenTE (joint, MC)"),
+)
+
+
 def gente_sep_joint_to_latex(
     df,
     outpath=None,
@@ -249,23 +256,35 @@ def gente_sep_joint_to_latex(
     p_values=None,
     n_values=None,
     effect_order=None,
+    methods=None,
 ):
     """Render the separate-versus-joint GenTE MSE table as LaTeX.
 
     Parameters
     ----------
-    df : data frame with stems ``GenTE Separate`` and
-        ``GenTE Joint Estimation`` (mean and ``std`` columns).
+    df : data frame with one mean column and one ``std`` column per method
+        stem in ``methods``.
     outpath : if given, the table is also written to this path.
     caption, label : table caption and cross-reference label.
     n_mc : number of Monte Carlo replications, reported in the caption.
     p_values, n_values : column and row orderings; inferred from ``df`` if None.
     effect_order : effect blocks to render, in order; defaults to those present.
+    methods : sequence of ``(column stem, display label)`` pairs, one block of
+        ``len(p_values)`` columns each. Defaults to ``SEP_JOINT_METHODS``.
+        Stems absent from ``df`` are dropped.
 
     Returns
     -------
     The LaTeX source as a string.
     """
+    if methods is None:
+        methods = SEP_JOINT_METHODS
+    # drop any method whose columns are not in the frame
+    methods = [(stem, lab) for stem, lab in methods
+               if f"{stem} MSE" in df.columns]
+    if not methods:
+        raise ValueError("none of the requested method stems are in df")
+
     if p_values is None:
         p_values = sorted(df["n_features"].dropna().unique())
     if n_values is None:
@@ -276,7 +295,7 @@ def gente_sep_joint_to_latex(
     if caption is None:
         caption = SEP_JOINT_CAPTION.format(n_mc=n_mc)
 
-    n_cols = 1 + 2 * len(p_values)
+    n_cols = 1 + len(methods) * len(p_values)
 
     out = [
         "\\begin{table}[H]",
@@ -290,19 +309,19 @@ def gente_sep_joint_to_latex(
 
     groups = [
         f"\\multicolumn{{{len(p_values)}}}{{c}}{{{lab}}}"
-        for _, lab in SEP_JOINT_METHODS
+        for _, lab in methods
     ]
     out.append("& " + " & ".join(groups) + " \\\\")
 
     rules, start = [], 2
-    for _ in SEP_JOINT_METHODS:
+    for _ in methods:
         rules.append(f"\\cmidrule(lr){{{start}-{start + len(p_values) - 1}}}")
         start += len(p_values)
     out.append("".join(rules))
 
     out.append(
         "Sample size & "
-        + " & ".join([f"$p{{=}}{int(p)}$" for p in p_values] * 2)
+        + " & ".join([f"$p{{=}}{int(p)}$" for p in p_values] * len(methods))
         + " \\\\"
     )
     out.append("\\midrule")
@@ -318,7 +337,7 @@ def gente_sep_joint_to_latex(
                 continue
 
             means, stds = [], []
-            for stem, _ in SEP_JOINT_METHODS:
+            for stem, _ in methods:
                 for p in p_values:
                     cell = rows[rows["n_features"] == p]
                     if cell.empty:
@@ -349,3 +368,4 @@ def gente_sep_joint_to_latex(
             fh.write(tex)
 
     return tex
+    

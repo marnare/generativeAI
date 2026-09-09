@@ -1151,4 +1151,78 @@ def run_star_propensity_logit(
             'scores': df_scores, 'models': models}
 
 
-        
+
+
+
+
+def fit_stars_gente_qte(
+    X_train, Y_train, D_train, X_test, D_test,
+    # ---- estimation ------------------------------------------------
+    gente_kwargs=None,          # passed to GenTE(...)
+    gente_fit_kwargs=None,      # passed to .fit(...)
+    q_grid=None,                # grid for the QTE curve and outcome surface
+    verbose=True,
+    learning_rate=0.02,
+    wd=0.003,
+    target='mean',
+):
+    """Fit GenTE on a training fold and return quantile-indexed effects.
+
+    Parameters
+    ----------
+    X_train, Y_train, D_train : training covariates, outcome, treatment.
+    X_test, D_test : test covariates and observed treatment; the latter is
+        used only for the factual outcome surface ``L_hat``.
+    q_grid : quantile levels at which theta(x, q) is evaluated. Defaults to
+        19 midpoints of equal subintervals of (0, 1).
+
+    Returns
+    -------
+    dict with the QTE matrix (n_test x len(q_grid)), the CATE implied by
+    averaging it over q, the ``estimate_cate`` summary, the fitted outcome
+    surface, the trained ensemble, and the grid.
+    """
+    gente_kwargs = {'model_cls': GBCcausal.CausalIQN, 'n_models': 3,
+                    'device': 'auto', 'target': target, 'hsz': 64, 'nh': 32,
+                    **(gente_kwargs or {})}
+    gente_fit_kwargs = {'epochs': 3000, 'lr': learning_rate, 'weight_decay': wd,
+                        'verbose': False, **(gente_fit_kwargs or {})}
+    if q_grid is None:
+        q_grid = (np.arange(19) + 0.5) / 19
+    q_grid = np.asarray(q_grid, dtype=float)
+
+    X_tr = np.asarray(X_train, dtype=float)
+    X_te = np.asarray(X_test, dtype=float)
+    D_tr = np.asarray(D_train, dtype=float)
+    D_te = np.asarray(D_test, dtype=float)
+    Y_tr = np.asarray(Y_train, dtype=float)
+
+    # ---- GenTE -----------------------------------------------------
+    if verbose:
+        print("Training GenTE...")
+    kw = dict(gente_kwargs)
+    hsz, nh = kw.pop('hsz'), kw.pop('nh')
+    ens = GBCcausal.GenTE(
+        model_kwargs={'xdim': X_tr.shape[1], 'hsz': hsz, 'nh': nh}, **kw)
+    ens.fit(X_tr, Y_tr, D_tr, **gente_fit_kwargs)
+
+    # ---- quantile treatment effects: theta(x, q) on the grid -------
+    # rows are stars, columns are quantile levels; already averaged over
+    # the K ensemble members inside estimate_qte
+    qte_gen_test = ens.estimate_qte(X_te, quantiles=q_grid)
+
+    # CATE implied by integrating the curve over q (Monte Carlo version
+    # from estimate_cate is returned alongside for comparison)
+    tau_gen_test = qte_gen_test.mean(axis=1)
+    cate_out = ens.estimate_cate(X_te)
+
+
+
+    return {
+        'qte_gen_test': qte_gen_test,   # theta(x, q), n_test x len(q_grid)
+        'tau_gen_test': tau_gen_test,   # CATE = mean over q
+        'cate_out': cate_out,
+        'ens': ens,
+        'q_grid': q_grid,
+    }
+

@@ -531,19 +531,32 @@ def run_mse_table_sep_joint(
     gente_kwargs=None,          # passed to GenTE(...)
     gente_fit_kwargs=None,      # joint: passed to .fit(...)
     sep_kwargs=None,            # separate: passed to .estimate_qte_separate(...)
+    cate_n_mc=500,              # draws used by .estimate_cate(...)
     verbose=True,
 ):
     """MSE of GenTE fitted separately by arm (T-learner) versus jointly.
 
+    Three estimators are scored:
+      * ``GenTE Separate``           -- arms fitted separately, CATE by
+                                        averaging theta(x, q) over the grid;
+      * ``GenTE Joint Estimation``   -- joint fit, CATE by averaging
+                                        theta(x, q) over the 19-point grid
+                                        returned by ``estimate_qte``;
+      * ``GenTE Joint MC``           -- the SAME joint fit, CATE from
+                                        ``estimate_cate`` (``cate_n_mc``
+                                        uniform draws per ensemble member).
+
+    The two joint columns share a fit, so any difference between them is
+    numerical approximation of the integral in the CATE definition, not a
+    difference of estimator.
+
     Returns the summary DataFrame; also writes it to
-    ``results_dir/table_name.csv`` when ``save_table`` is True.  Column stems
-    are ``GenTE Separate`` and ``GenTE Joint Estimation``, matching
-    ``gente_sep_joint_to_latex``.
+    ``results_dir/table_name.csv`` when ``save_table`` is True.
 
     Note that ``estimate_qte_separate`` fits and predicts on the same
     covariates, so the separate estimator is scored on the evaluation fold it
-    was fitted on, while the joint estimator is fitted on the training fold and
-    scored out of sample.
+    was fitted on, while the joint estimators are fitted on the training fold
+    and scored out of sample.
     """
     effect_labels = {'linear': 'Linear',
                      'non-linear': 'Non-linear',
@@ -568,7 +581,7 @@ def run_mse_table_sep_joint(
                     print(f"{effect:24s} S={n_samples:5d} p={n_features:2d} "
                           f"({n_mc} reps)", flush=True)
 
-                mse_sep_list, mse_joint_list = [], []
+                mse_sep_list, mse_joint_list, mse_joint_mc_list = [], [], []
 
                 for rep in range(n_mc):
                     rng_rep = seed + rep
@@ -595,15 +608,22 @@ def run_mse_table_sep_joint(
                         X_test, Y_test, D_test, **sep_kwargs)
                     tau_sep = qte_sep.mean(axis=1)
 
-                    # ---- GenTE, joint estimation ----
+                    # ---- GenTE, joint estimation (one fit, two summaries) ----
                     ens = GenTE(model_kwargs=mk, **kw)
                     ens.fit(X_train, Y_train, D_train, **gente_fit_kwargs)
+
+                    # (i) grid average of theta(x, q)
                     tau_joint = ens.estimate_qte(X_test).mean(axis=1)
+                    # (ii) Monte Carlo average from estimate_cate
+                    tau_joint_mc = ens.estimate_cate(X_test, n_mc=cate_n_mc)['cate']
 
                     mse_sep_list.append(np.mean((tau_sep - tau_test) ** 2))
                     mse_joint_list.append(np.mean((tau_joint - tau_test) ** 2))
+                    mse_joint_mc_list.append(np.mean((tau_joint_mc - tau_test) ** 2))
 
-                sep_m, joint_m = np.mean(mse_sep_list), np.mean(mse_joint_list)
+                sep_m = np.mean(mse_sep_list)
+                joint_m = np.mean(mse_joint_list)
+                joint_mc_m = np.mean(mse_joint_mc_list)
                 rows.append({
                     'effect': effect,
                     'n_samples': n_samples,
@@ -612,7 +632,11 @@ def run_mse_table_sep_joint(
                     'GenTE Separate MSE std': np.std(mse_sep_list),
                     'GenTE Joint Estimation MSE': joint_m,
                     'GenTE Joint Estimation MSE std': np.std(mse_joint_list),
+                    'GenTE Joint MC MSE': joint_mc_m,
+                    'GenTE Joint MC MSE std': np.std(mse_joint_mc_list),
                     'gain of joint (%)': 100.0 * (1.0 - joint_m / sep_m),
+                    'gain of joint MC (%)': 100.0 * (1.0 - joint_mc_m / sep_m),
+                    'grid vs MC gap (%)': 100.0 * (joint_mc_m - joint_m) / joint_m,
                 })
 
     df_table = pd.DataFrame(rows)
@@ -631,8 +655,10 @@ def run_mse_table_sep_joint(
                 print(f"  S={row['n_samples']:.0f}, p={row['n_features']:.0f}: "
                       f"separate {row['GenTE Separate MSE']:.4f} ± "
                       f"{row['GenTE Separate MSE std']:.4f} | "
-                      f"joint {row['GenTE Joint Estimation MSE']:.4f} ± "
-                      f"{row['GenTE Joint Estimation MSE std']:.4f}")
+                      f"joint(grid) {row['GenTE Joint Estimation MSE']:.4f} ± "
+                      f"{row['GenTE Joint Estimation MSE std']:.4f} | "
+                      f"joint(MC) {row['GenTE Joint MC MSE']:.4f} ± "
+                      f"{row['GenTE Joint MC MSE std']:.4f}")
 
     return df_table
 
@@ -1015,3 +1041,92 @@ def simulate_causal_assignments(n_samples=500,
     Y = mu + theta_true * D + rng.standard_normal(n_samples) * 0.5
     return X, D, Y, theta_true
 
+
+
+
+from scipy.stats import norm
+
+def simulate_regime(regime, n=2000, p=4, sigma0=0.5, sigma1=1.5, seed=7):
+    """A: constant.  B: varies in x only.  C: varies in q only."""
+    rng = np.random.default_rng(seed)
+    X = rng.standard_normal((n, p))
+    beta = rng.normal(0, 0.5, size=p)
+    mu = X @ beta
+
+    theta_x = (1.0 + X[:, 0] + 0.5 * X[:, 1]) if regime == 'B' else np.ones(n)
+    s1 = sigma1 if regime == 'C' else sigma0
+
+    pi = 1 / (1 + np.exp(-(0.3 * X[:, 0] - 0.2 * X[:, 1] + 0.1 * X[:, 2])))
+    D = rng.binomial(1, pi).astype(float)
+
+    eps = np.where(D == 1, rng.normal(0, s1, n), rng.normal(0, sigma0, n))
+    Y = mu + theta_x * D + eps
+    return X, D, Y, theta_x, sigma0, s1
+
+
+def true_qte(regime, theta_x_eval, q_grid, sigma0, s1):
+    return theta_x_eval[:, None] + (s1 - sigma0) * norm.ppf(q_grid)[None, :]
+
+
+def run_panels(regimes=('A', 'B', 'C'), n=2000, p=4, n_profiles=5,
+               q_grid=None, seed=7, epochs=500):
+    if q_grid is None:
+        q_grid = (np.arange(19) + 0.5) / 19
+    out = {}
+    for reg in regimes:
+        X, D, Y, theta_x, s0, s1 = simulate_regime(reg, n=n, p=p, seed=seed)
+
+        # fixed evaluation profiles: sweep x1, hold the rest at 0
+        X_eval = np.zeros((n_profiles, p))
+        X_eval[:, 0] = np.linspace(-1.5, 1.5, n_profiles)
+        theta_eval = (1 + X_eval[:, 0] + 0.5 * X_eval[:, 1]) if reg == 'B' \
+                     else np.ones(n_profiles)
+
+        sc = StandardScaler()
+        X_s, X_eval_s = sc.fit_transform(X), sc.transform(X_eval)
+
+        ens = GenTE(model_kwargs={'xdim': p, 'hsz': 64, 'nh': 32},
+                    model_cls=GBCcausal.CausalIQN, n_models=3,
+                    device='auto', target='mean')
+        ens.fit(X_s, Y, D, epochs=epochs, lr=0.01, weight_decay=0, verbose=False)
+
+        out[reg] = dict(
+            q=q_grid,
+            est=ens.estimate_qte(X_eval_s, quantiles=q_grid),
+            truth=true_qte(reg, theta_eval, q_grid, s0, s1),
+            theta_eval=theta_eval,
+        )
+    return out
+
+
+def plot_panels(out, probit=True, n_profiles=None):
+    regs = list(out)
+    titles = {'A': 'No heterogeneity',
+              'B': 'Covariate heterogeneity',
+              'C': 'Quantile heterogeneity'}
+    if n_profiles is None:
+        n_profiles = out[regs[0]]['est'].shape[0]
+    x1_eval = np.linspace(-1.5, 1.5, n_profiles)   # must match run_panels
+
+    fig, axes = plt.subplots(1, len(regs), figsize=(4.1 * len(regs), 3.6),
+                             sharey=True)
+    axes = np.atleast_1d(axes)
+
+    for ax, reg in zip(axes, regs):
+        d = out[reg]
+        xs = norm.ppf(d['q']) if probit else d['q']
+        for j in range(d['est'].shape[0]):
+            c = plt.cm.viridis(j / max(d['est'].shape[0] - 1, 1))
+            ax.plot(xs, d['est'][j], lw=1.7, color=c,
+                    label=rf"$x_1={x1_eval[j]:+.2f}$")
+            ax.plot(xs, d['truth'][j], ls='--', lw=1.1, color=c)
+        ax.set_title(titles.get(reg, reg), fontsize=10)
+        ax.set_xlabel(r"$\Phi^{-1}(q)$" if probit else r"$q$")
+        ax.axhline(0, lw=0.5, color='0.7')
+
+    axes[0].set_ylabel(r"$\hat\theta(x,q)$")
+    # legend on the covariate-heterogeneity panel, where the profiles separate
+    leg_ax = axes[regs.index('B')] if 'B' in regs else axes[0]
+    leg_ax.legend(fontsize=6.5, frameon=False)
+    fig.tight_layout()
+    return fig
