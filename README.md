@@ -42,10 +42,7 @@ from sklearn.model_selection import train_test_split
 import GBCcausal
 
 
-# ----------------------------------------------------------------------
-# 1. Synthetic data-generating process with a known CATE
-#    Y = mu(X) + theta(X) * T + eps,   T ~ Bernoulli(pi(X))
-# ----------------------------------------------------------------------
+
 def make_data(n=1000, p=5, seed=0):
     rng = np.random.default_rng(seed)
     X = rng.standard_normal((n, p))                      # X ~ N(0, I_p)
@@ -122,21 +119,12 @@ qte_gen = ens.estimate_qte(
     quantiles=q_grid,
 )
 
-# ======================================================================
-# 3. Evaluate against ground truth
-# ======================================================================
+
+
 cate_mse = float(np.mean((tau_gen_test - theta_te) ** 2))
 naive_mse = float(np.mean((theta_te.mean() - theta_te) ** 2))  # constant-ATE baseline
 corr = float(np.corrcoef(tau_gen_test, theta_te)[0, 1])
 
-print("\n================ GenTE toy example ================")
-print(f"train / test sizes      : {len(X_tr)} / {len(X_te)}")
-print(f"true  ATE               : {theta_te.mean(): .3f}")
-print(f"GenTE ATE               : {ate_gen: .3f}")
-print(f"CATE MSE (GenTE)        : {cate_mse: .3f}")
-print(f"corr(estimate, truth)   : {corr: .3f}")
-print(f"QTE grid shape          : {qte_gen.shape}  (n_test x n_quantiles)")
-print(f"QTE mean over quantiles : {qte_gen.mean(axis=0).round(2)}")
 
 
 ```
