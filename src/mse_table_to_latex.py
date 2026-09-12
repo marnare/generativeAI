@@ -369,3 +369,168 @@ def gente_sep_joint_to_latex(
 
     return tex
     
+
+
+DESIGN_ORDER = ('gaussian', 'heavy', 'skew', 'mixture')
+DESIGN_LABELS = {
+    'gaussian': 'Gaussian errors',
+    'heavy': 'Heavy-tailed errors ($t_3$)',
+    'skew': 'Skewed treated arm',
+    'mixture': 'Mixture errors',
+}
+
+ROBUST_METHODS = (
+    ("GenTE Joint Estimation", "GenTE (quantile, grid)"),
+    ("GenTE Joint MC",         "GenTE (quantile, MC)"),
+    ("GenTE Direct",           "GenTE (direct, squared loss)"),
+)
+
+
+def gente_quantile_direct_to_latex(
+    df,
+    outpath=None,
+    caption=None,
+    label="tab:gente_quantile_direct",
+    n_mc=100,
+    p_values=None,
+    n_values=None,
+    effect_order=None,
+    methods=None,
+    group_col="design",
+    group_order=None,
+    group_labels=None,
+    baseline_stem="GenTE Direct",
+    mark_baseline_wins=True,
+):
+    """Render a GenTE MSE table as LaTeX.
+
+    ``group_col`` selects the column defining the row blocks: "effect" for the
+    effect-form tables, "design" for the error-distribution table.
+
+    When ``mark_baseline_wins`` is True, each ``baseline_stem`` cell is wrapped
+    in ``\\bt{}`` whenever it attains a lower MSE than every other method at the
+    same (group, S, p).  With ``baseline_stem="GenTE Direct"`` this marks the
+    cells in which the direct specification outperforms the quantile-indexed
+    one under both quadratures, matching the convention of the other tables, in
+    which dark blue marks cells where the specification reported in the main
+    text does not lead.
+    """
+    if methods is None:
+        methods = ROBUST_METHODS
+    methods = [(stem, lab) for stem, lab in methods
+               if f"{stem} MSE" in df.columns]
+    if not methods:
+        raise ValueError("none of the requested method stems are in df")
+
+    other_stems = [s for s, _ in methods if s != baseline_stem]
+    if mark_baseline_wins:
+        if not any(s == baseline_stem for s, _ in methods):
+            raise ValueError(f"baseline_stem '{baseline_stem}' is not among methods")
+        if not other_stems:
+            raise ValueError("nothing to compare the baseline against")
+
+    if group_order is None:
+        group_order = DESIGN_ORDER if group_col == "design" else EFFECT_ORDER
+    if group_labels is None:
+        group_labels = DESIGN_LABELS if group_col == "design" else EFFECT_LABELS
+
+    if p_values is None:
+        p_values = sorted(df["n_features"].dropna().unique())
+    if n_values is None:
+        n_values = sorted(df["n_samples"].dropna().unique())
+    if effect_order is None:
+        present = set(df[group_col].dropna().unique())
+        effect_order = [e for e in group_order if e in present]
+    if caption is None:
+        caption = SEP_JOINT_CAPTION.format(n_mc=n_mc)
+
+    n_cols = 1 + len(methods) * len(p_values)
+
+    out = [
+        "\\begin{table}[H]",
+        "\\centering",
+        f"\\caption{{{caption}}}",
+        f"\\label{{{label}}}",
+        "\\resizebox{\\textwidth}{!}{%",
+        "\\begin{tabular}{l" + "r" * (n_cols - 1) + "}",
+        "\\toprule",
+    ]
+
+    groups = [
+        f"\\multicolumn{{{len(p_values)}}}{{c}}{{{lab}}}"
+        for _, lab in methods
+    ]
+    out.append("& " + " & ".join(groups) + " \\\\")
+
+    rules, start = [], 2
+    for _ in methods:
+        rules.append(f"\\cmidrule(lr){{{start}-{start + len(p_values) - 1}}}")
+        start += len(p_values)
+    out.append("".join(rules))
+
+    out.append(
+        "Sample size & "
+        + " & ".join([f"$p{{=}}{int(p)}$" for p in p_values] * len(methods))
+        + " \\\\"
+    )
+    out.append("\\midrule")
+
+    for i, grp in enumerate(effect_order):
+        block = df[df[group_col] == grp]
+        out.append(f"\\multicolumn{{{n_cols}}}{{l}}{{{group_labels[grp]}}} \\\\")
+        out.append("\\midrule")
+
+        for n in n_values:
+            rows = block[block["n_samples"] == n]
+            if rows.empty:
+                continue
+
+            # at each p, does the baseline beat every other method?
+            base_wins = {}
+            if mark_baseline_wins:
+                for p in p_values:
+                    cell = rows[rows["n_features"] == p]
+                    if cell.empty:
+                        base_wins[p] = False
+                        continue
+                    b = float(cell[f"{baseline_stem} MSE"].iloc[0])
+                    base_wins[p] = all(
+                        b < float(cell[f"{s} MSE"].iloc[0]) for s in other_stems
+                    )
+
+            means, stds = [], []
+            for stem, _ in methods:
+                for p in p_values:
+                    cell = rows[rows["n_features"] == p]
+                    if cell.empty:
+                        means.append("---")
+                        stds.append("")
+                        continue
+                    txt = _fmt(float(cell[f"{stem} MSE"].iloc[0]))
+                    if (mark_baseline_wins and stem == baseline_stem
+                            and base_wins.get(p, False)):
+                        txt = f"\\bt{{{txt}}}"
+                    means.append(txt)
+                    stds.append(f"({_fmt(cell[f'{stem} MSE std'].iloc[0])})")
+
+            out.append(f"{int(n)} & " + " & ".join(means) + " \\\\")
+            out.append("  & " + " & ".join(stds) + " \\\\")
+
+        if i < len(effect_order) - 1:
+            out.append("\\addlinespace")
+            out.append("\\midrule")
+
+    out.extend([
+        "\\bottomrule",
+        "\\end{tabular}%",
+        "}",
+        "\\end{table}",
+    ])
+
+    tex = "\n".join(out) + "\n"
+
+    if outpath is not None:
+        with open(outpath, "w") as fh:
+            fh.write(tex)
+
+    return tex

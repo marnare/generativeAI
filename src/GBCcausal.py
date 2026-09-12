@@ -326,6 +326,67 @@ class CausalIQNv2(nn.Module):
         return outcome_loss + pi_loss
 
 
+class CausalMean(nn.Module):
+    """Ablation: multi-head causal network without quantile indexing.
+
+    Identical to CausalIQN in width, depth, propensity embedding and joint
+    estimation, but the effect is a function of x alone, f = mu(x) + te(x) * z,
+    fitted by squared loss.  `tau` is accepted and ignored so that the model
+    can be dropped into GenTE unchanged.
+    """
+
+    def __init__(self, xdim=1, hsz=64, nh=32, target="mean"):
+        super().__init__()
+        self.target = target
+        self.nh = nh                      # unused; kept for API compatibility
+        pisz, lw = 8, 16
+
+        self.pi = nn.Sequential(
+            nn.Linear(xdim, 16), nn.ReLU(),
+            nn.Linear(16, pisz),
+        )
+        self.pi1 = nn.Sequential(
+            nn.Linear(pisz, 16), nn.ReLU(),
+            nn.Linear(16, 1),
+        )
+        self.mu = nn.Sequential(
+            nn.Linear(xdim + pisz, lw), nn.ReLU(),
+            nn.Linear(lw, lw), nn.ReLU(),
+            nn.Linear(lw, hsz),
+        )
+        self.mu1 = nn.Sequential(
+            nn.Linear(hsz, lw), nn.ReLU(),
+            nn.Linear(lw, lw), nn.ReLU(),
+            nn.Linear(lw, 1),
+        )
+        self.te = nn.Sequential(
+            nn.Linear(xdim, lw), nn.ReLU(),
+            nn.Linear(lw, lw), nn.ReLU(),
+            nn.Linear(lw, hsz),
+        )
+        self.te1 = nn.Sequential(
+            nn.Linear(hsz, lw), nn.ReLU(),
+            nn.Linear(lw, 2),          # two columns so te[:, 1] matches GenTE
+        )
+
+    def forward(self, x, z, tau=None):
+        pi = self.pi(x)
+        pi1 = self.pi1(pi)
+        mu = self.mu1(self.mu(torch.cat((x, pi), dim=1)))   # no tau_e product
+        te = self.te1(self.te(x))                           # no tau_e product
+        f = mu + te * z.view(-1, 1)
+        return f, pi1, te, mu
+
+    def loss_fn(self, x, y, z, w=(0.3, 0.1, 0.6)):
+        """Squared-error outcome loss plus propensity BCE."""
+        f, pi_logit, _, _ = self(x, z)
+        pi_loss = nn.functional.binary_cross_entropy_with_logits(
+            pi_logit.view(-1), z.float()
+        )
+        outcome_loss = nn.functional.mse_loss(f[:, 1], y.view(-1))
+        return outcome_loss + pi_loss
+
+
 # ============================================================
 # Causal Ensemble
 # ============================================================

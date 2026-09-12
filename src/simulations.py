@@ -664,6 +664,245 @@ def run_mse_table_sep_joint(
 
 
 
+
+def simulate_robust(design, n=2000, p=4, sigma=0.5, seed=7):
+    """Designs contrasting the check function with squared loss.
+
+    All four keep the CATE at theta(x) = 1 + x1 + 0.5 x2 and the linear-logit
+    assignment of Subsection 4.1, and vary only the conditional law of the
+    disturbances.
+
+        'gaussian' N(0, sigma^2) errors: the reference case, in which squared
+                   loss is the efficient criterion for a conditional mean
+        'heavy'    t_3 errors, rescaled to variance sigma^2
+        'skew'     arm-dependent skew: control Gaussian, treated recentred
+                   lognormal with the same variance
+        'mixture'  two-component outcome: most units shift modestly, a
+                   subgroup shifts sharply, so the conditional mean falls
+                   in a region of low density
+    """
+    rng = np.random.default_rng(seed)
+    X = rng.standard_normal((n, p))
+    beta = rng.normal(0, 0.5, size=p)
+    mu = X @ beta
+
+    theta_x = 1.0 + X[:, 0] + 0.5 * X[:, 1]          # CATE, common to all four
+
+    index = 0.3 * X[:, 0] - 0.2 * X[:, 1]
+    
+    if p >= 3:
+        index = index + 0.1 * X[:, 2]
+    pi = 1 / (1 + np.exp(-index))
+    D = rng.binomial(1, pi).astype(float)
+
+
+    if design == 'gaussian':
+        eps = rng.normal(0, sigma, n)
+
+    elif design == 'heavy':
+        # t_3 has variance 3, so divide by sqrt(3) to match sigma
+        eps = sigma * rng.standard_t(df=3, size=n) / np.sqrt(3.0)
+
+    elif design == 'skew':
+        # control: Gaussian.  treated: lognormal, recentred to mean zero and
+        # rescaled to variance sigma^2, so the CATE is unchanged but the
+        # treated arm is right-skewed and theta(x, q) varies with q.
+        s = 0.8
+        raw = rng.lognormal(mean=0.0, sigma=s, size=n)
+        m_ln = np.exp(s ** 2 / 2)
+        v_ln = (np.exp(s ** 2) - 1) * np.exp(s ** 2)
+        eps1 = sigma * (raw - m_ln) / np.sqrt(v_ln)
+        eps0 = rng.normal(0, sigma, n)
+        eps = np.where(D == 1, eps1, eps0)
+
+    elif design == 'mixture':
+        # 85% of units get no extra shift, 15% a large one; the mixture is
+        # recentred so that E[eps | X] = 0 and the CATE is untouched.
+        big = rng.random(n) < 0.15
+        shift = np.where(big, 3.0, 0.0)
+        eps = rng.normal(0, sigma, n) + shift - 0.15 * 3.0
+
+    else:
+        raise ValueError("design must be 'gaussian', 'heavy', 'skew' or 'mixture'")
+
+    Y = mu + theta_x * D + eps
+    return X, D, Y, theta_x
+
+
+
+def run_mse_table_robust(
+    # ---- output ---------------------------------------------------
+    results_dir='results_sims_mean',
+    table_name='df_table_robust',
+    save_table=True,
+    # ---- design ---------------------------------------------------
+    designs=('gaussian', 'heavy', 'skew', 'mixture'),
+    n_samples_list=(200, 500, 1000),
+    n_features_list=(2, 4, 8),
+    n_mc=100,
+    test_size=0.5,
+    sigma=0.5,
+    seed=232,
+    # ---- estimators -----------------------------------------------
+    gente_kwargs=None,          # passed to GenTE(...)
+    gente_fit_kwargs=None,      # joint: passed to .fit(...)
+    mean_kwargs=None,           # direct: overrides for the CausalMean ensemble
+    mean_fit_kwargs=None,       # direct: overrides for its .fit(...)
+    sep_kwargs=None,            # separate: passed to .estimate_qte_separate(...)
+    include_separate=False,     # the T-learner column is expensive; off by default
+    cate_n_mc=500,              # draws used by .estimate_cate(...)
+    verbose=True,
+):
+    """CATE accuracy of the quantile-indexed and direct specifications across
+    error distributions.
+
+    The CATE is held fixed at theta(x) = 1 + x1 + 0.5 x2 in every design, so
+    the columns differ only in the conditional law of the disturbances and the
+    comparison isolates the estimating criterion.  Under 'gaussian' the two
+    specifications target the same quantity and squared loss is efficient, so
+    parity is the expected result; the check function should gain where the
+    disturbances are heavy-tailed, skewed or multimodal.
+
+    Estimators scored:
+      * ``GenTE Joint Estimation`` -- quantile-indexed heads, CATE by averaging
+                                      theta(x, q) over the 19-point grid;
+      * ``GenTE Joint MC``         -- the SAME fit, CATE from ``estimate_cate``;
+      * ``GenTE Direct``           -- quantile indexing removed, outcome fitted
+                                      by squared loss (``CausalMean``), with
+                                      width, depth, propensity embedding, joint
+                                      estimation and ensemble size held fixed;
+      * ``GenTE Separate``         -- optional T-learner analogue.
+    """
+    design_labels = {'gaussian': 'Gaussian', 'heavy': 'Heavy-tailed',
+                     'skew': 'Skewed (treated arm)', 'mixture': 'Mixture'}
+
+    gente_kwargs = {'model_cls': GBCcausal.CausalIQN, 'n_models': 3,
+                    'device': 'auto', 'target': 'mean', 'hsz': 64, 'nh': 32,
+                    **(gente_kwargs or {})}
+    gente_fit_kwargs = {'epochs': 500, 'lr': 0.01, 'weight_decay': 1e-3,
+                        'verbose': False, **(gente_fit_kwargs or {})}
+    sep_kwargs = {'epochs': 100, 'hdim': 64, 'nh': 32, **(sep_kwargs or {})}
+
+    # the direct specification inherits every setting except the model class
+    mean_kwargs = {**gente_kwargs, 'model_cls': GBCcausal.CausalMean,
+                   **(mean_kwargs or {})}
+    mean_fit_kwargs = {**gente_fit_kwargs, **(mean_fit_kwargs or {})}
+
+    os.makedirs(results_dir, exist_ok=True)
+    designs = list(designs)
+    rows = []
+
+    for design in designs:
+        for n_samples in n_samples_list:
+            for n_features in n_features_list:
+                if verbose:
+                    print(f"{design:10s} S={n_samples:5d} p={n_features:2d} "
+                          f"({n_mc} reps)", flush=True)
+
+                mse_joint_list, mse_joint_mc_list = [], []
+                mse_direct_list, mse_sep_list = [], []
+
+                for rep in range(n_mc):
+                    rng_rep = seed + rep
+                    X, D, Y, tau_true = simulate_robust(
+                        design, n=n_samples, p=n_features,
+                        sigma=sigma, seed=rng_rep)
+
+                    (X_train, X_test, D_train, D_test,
+                     Y_train, Y_test, tau_train, tau_test) = train_test_split(
+                        X, D, Y, tau_true, test_size=test_size,
+                        random_state=rng_rep, stratify=D)
+
+                    scaler = StandardScaler()
+                    X_train = scaler.fit_transform(X_train)
+                    X_test = scaler.transform(X_test)
+
+                    kw = dict(gente_kwargs)
+                    hsz, nh = kw.pop('hsz'), kw.pop('nh')
+                    mk = {'xdim': X_train.shape[1], 'hsz': hsz, 'nh': nh}
+
+                    # ---- quantile-indexed, joint (one fit, two summaries) ----
+                    ens = GenTE(model_kwargs=mk, **kw)
+                    ens.fit(X_train, Y_train, D_train, **gente_fit_kwargs)
+                    tau_joint = ens.estimate_qte(X_test).mean(axis=1)
+                    tau_joint_mc = ens.estimate_cate(X_test, n_mc=cate_n_mc)['cate']
+
+                    # ---- quantile indexing removed (CausalMean) ----
+                    kw_m = dict(mean_kwargs)
+                    hsz_m, nh_m = kw_m.pop('hsz'), kw_m.pop('nh')
+                    mk_m = {'xdim': X_train.shape[1], 'hsz': hsz_m, 'nh': nh_m}
+                    ens_direct = GenTE(model_kwargs=mk_m, **kw_m)
+                    ens_direct.fit(X_train, Y_train, D_train, **mean_fit_kwargs)
+                    # the effect head ignores q, so any single level returns it
+                    tau_direct = ens_direct.estimate_qte(
+                        X_test, quantiles=[0.5]).ravel()
+
+                    mse_joint_list.append(np.mean((tau_joint - tau_test) ** 2))
+                    mse_joint_mc_list.append(np.mean((tau_joint_mc - tau_test) ** 2))
+                    mse_direct_list.append(np.mean((tau_direct - tau_test) ** 2))
+
+                    # ---- optional T-learner analogue ----
+                    if include_separate:
+                        ens_sep = GenTE(model_kwargs=mk, **kw)
+                        qte_sep = ens_sep.estimate_qte_separate(
+                            X_test, Y_test, D_test, **sep_kwargs)
+                        mse_sep_list.append(
+                            np.mean((qte_sep.mean(axis=1) - tau_test) ** 2))
+
+                joint_m = np.mean(mse_joint_list)
+                joint_mc_m = np.mean(mse_joint_mc_list)
+                direct_m = np.mean(mse_direct_list)
+
+                row = {
+                    'design': design,
+                    'n_samples': n_samples,
+                    'n_features': n_features,
+                    'GenTE Joint Estimation MSE': joint_m,
+                    'GenTE Joint Estimation MSE std': np.std(mse_joint_list),
+                    'GenTE Joint MC MSE': joint_mc_m,
+                    'GenTE Joint MC MSE std': np.std(mse_joint_mc_list),
+                    'GenTE Direct MSE': direct_m,
+                    'GenTE Direct MSE std': np.std(mse_direct_list),
+                    'grid vs MC gap (%)':
+                        100.0 * (joint_mc_m - joint_m) / joint_m,
+                    'gain of quantile vs direct (%)':
+                        100.0 * (1.0 - joint_m / direct_m),
+                }
+                if include_separate:
+                    sep_m = np.mean(mse_sep_list)
+                    row['GenTE Separate MSE'] = sep_m
+                    row['GenTE Separate MSE std'] = np.std(mse_sep_list)
+                    row['gain of joint (%)'] = 100.0 * (1.0 - joint_m / sep_m)
+                rows.append(row)
+
+    df_table = pd.DataFrame(rows)
+
+    if save_table:
+        path = os.path.join(results_dir, f'{table_name}.csv')
+        df_table.to_csv(path, index=False)
+        if verbose:
+            print(f"\nsaved {path}")
+
+    if verbose:
+        for design in designs:
+            df_d = df_table[df_table['design'] == design]
+            print(f"\n--- {design_labels[design].upper()} ---")
+            for _, row in df_d.iterrows():
+                line = (f"  S={row['n_samples']:.0f}, p={row['n_features']:.0f}: "
+                        f"quantile {row['GenTE Joint Estimation MSE']:.4f} ± "
+                        f"{row['GenTE Joint Estimation MSE std']:.4f} | "
+                        f"direct {row['GenTE Direct MSE']:.4f} ± "
+                        f"{row['GenTE Direct MSE std']:.4f} | "
+                        f"gain {row['gain of quantile vs direct (%)']:+.1f}%")
+                if include_separate:
+                    line += (f" | separate {row['GenTE Separate MSE']:.4f}")
+                print(line)
+
+    return df_table
+
+
+
+
 def run_assignment_robustness(
     # ---- output ---------------------------------------------------
     results_dir='results_sims_mean',
