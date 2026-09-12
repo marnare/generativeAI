@@ -9,8 +9,9 @@ This repository contains the replication code. The code is adapted from ```https
    - `cd generativeAI`
   
  2. Install packages in the `requirements.txt`
- 3. Run jupyter notebook `application_stars_mean_target.ipynb`
- 4. Run `MC_simulations_mean_target.ipynb`
+ 3. Install GBC: ```pip install git+https://github.com/VadimSokolov/gbc.git```
+ 4. Run jupyter notebook `application_stars_mean_target.ipynb`
+ 5. Run `MC_simulations_mean_target.ipynb`
 
 
 # Example 
