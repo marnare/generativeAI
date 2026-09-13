@@ -28,7 +28,6 @@ Generates synthetic data with a KNOWN conditional average treatment effect
 
 Requirements:  `GBCcausal.py` (repo: src/) plus `gbc`
 helper package, torch, numpy, scikit-learn.
-Run:  python toy_gente.py
 """
 
 import os, sys
